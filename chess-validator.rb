@@ -1,7 +1,7 @@
 require 'pry'
 
 module RightMovement
-  def right_movemnt? board, origin, destination
+  def right_movement? board, origin, destination
     orientation = orientation(origin, destination)
     orientation[0] == 0 || orientation[1] == 0
   end
@@ -9,9 +9,40 @@ end
 
 
 module DiagonalMovement
-  def diagonal_movemnt? board, origin, destination
+  def diagonal_movement? board, origin, destination
     orientation = orientation(origin, destination)
     orientation[0] == orientation[1]
+  end
+end
+
+module KingMovement
+  def king_movement? board, origin, destination
+    orientation = orientation(origin, destination)
+    (orientation[0] - orientation[1]) == 0 || (orientation[0] - orientation[1]).abs == 1
+  end
+end
+
+module KnigthMovement
+  def knigth_movement? board, origin, destination
+    orientation = orientation(origin, destination)
+    (orientation[0] == 1 &&  orientation[1] == 2) || (orientation[0] == 2 &&  orientation[1] == 1)
+  end
+end
+
+module PawnMovement
+  def pawn_movement? board, origin, destination
+    orientation = orientation(origin, destination)
+    if( (origin[0] == 1)  && (destination[0] == 3) && (orientation[1] == 0 && @color == :black))
+      true
+    elsif( (origin[0] == 6)  && (destination[0] == 4) && (orientation[1] == 0 && @color == :white) )
+      true
+    elsif( ( (destination[0] - origin[0])  == 1 && orientation[1] == 0) && (@color == :black))
+      true
+    elsif( ( (destination[0] - origin[0]) == -1 && orientation[1] == 0) && (@color == :white))
+      true
+    else
+      false
+    end
   end
 end
 
@@ -21,7 +52,7 @@ end
 #------------------------------------------------
 
 class Piece
-  def initialize color=:black
+  def initialize color
     @color = color
   end
 
@@ -36,20 +67,13 @@ class Piece
   def is_empty? board, destination
     board[destination[0]][destination[1]] == nil
   end
-  def check_move? board, origin, destination
-    orientation = orientation(origin, destination)
-    if right_movemnt? board, origin, destination
-      is_empty? board, destination
-    end
-  end
 end
 
 
 class Rook < Piece
   include RightMovement
   def check_move? board, origin, destination
-    orientation = orientation(origin, destination)
-    if right_movemnt? board, origin, destination
+    if right_movement? board, origin, destination
       is_empty? board, destination
     end
   end
@@ -59,8 +83,7 @@ class Queen < Piece
   include RightMovement
   include DiagonalMovement
   def check_move? board, origin, destination
-    orientation = orientation(origin, destination)
-    if (right_movemnt? board, origin, destination) || (diagonal_movemnt? board, origin, destination)
+    if (right_movement? board, origin, destination) || (diagonal_movement? board, origin, destination)
       is_empty? board, destination
     end
   end
@@ -69,41 +92,34 @@ end
 class Bishop < Piece
   include DiagonalMovement
   def check_move? board, origin, destination
-    orientation = orientation(origin, destination)
-    if diagonal_movemnt? board, origin, destination
+    if diagonal_movement? board, origin, destination
       is_empty? board, destination
     end
   end
 end
 
 class King < Piece
+  include KingMovement
   def check_move? board, origin, destination
-    orientation = orientation(origin, destination)
-    if( orientation[0] - orientation[1] == 0 || (orientation[0] - orientation[1]).abs == 1 )
+    if king_movement? board, origin, destination
       is_empty? board, destination
     end
   end
 end
 
 class Knigth < Piece
+  include KnigthMovement
   def check_move? board, origin, destination
-    orientation = orientation(origin, destination)
-    if ( (orientation[0] == 1 &&  orientation[1] == 2) || (orientation[0] == 2 &&  orientation[1] == 1) )
+    if knigth_movement? board, origin, destination
       is_empty? board, destination
     end
   end
 end
 
 class Pawn < Piece
+  include PawnMovement
   def check_move? board, origin, destination
-    orientation = orientation(origin, destination)
-    if( (origin[0] == 1)  && (destination[0] == 3) && (orientation[1] == 0 && @color == :black))
-      is_empty? board, destination
-    elsif( (origin[0] == 6)  && (destination[0] == 4) && (orientation[1] == 0 && @color == :white) )
-      is_empty? board, destination
-    elsif( ( (destination[0] - origin[0])  == 1 && orientation[1] == 0) && (@color == :black))
-      is_empty? board, destination
-    elsif( ( (destination[0] - origin[0]) == -1 && orientation[1] == 0) && (@color == :white))
+    if pawn_movement? board, origin, destination
       is_empty? board, destination
     end
   end
