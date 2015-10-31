@@ -36,6 +36,12 @@ class Piece
   def is_empty? board, destination
     board[destination[0]][destination[1]] == nil
   end
+  def check_move? board, origin, destination
+    orientation = orientation(origin, destination)
+    if right_movemnt? board, origin, destination
+      is_empty? board, destination
+    end
+  end
 end
 
 
@@ -73,7 +79,7 @@ end
 class King < Piece
   def check_move? board, origin, destination
     orientation = orientation(origin, destination)
-    if (orientation[0] == 1 || orientation[1] == 1)
+    if( orientation[0] - orientation[1] == 0 || (orientation[0] - orientation[1]).abs == 1 )
       is_empty? board, destination
     end
   end
@@ -91,13 +97,13 @@ end
 class Pawn < Piece
   def check_move? board, origin, destination
     orientation = orientation(origin, destination)
-    if( (origin[0] == 1)  && (destination[0] == 3) && (@color == :black))
+    if( (origin[0] == 1)  && (destination[0] == 3) && (orientation[1] == 0 && @color == :black))
       is_empty? board, destination
-    elsif( (origin[0] == 6)  && (destination[0] == 4) && (@color == :white) )
+    elsif( (origin[0] == 6)  && (destination[0] == 4) && (orientation[1] == 0 && @color == :white) )
       is_empty? board, destination
-    elsif( (orientation[0] == 1 && orientation[1] == 0) && (@color == :black))
+    elsif( ( (destination[0] - origin[0])  == 1 && orientation[1] == 0) && (@color == :black))
       is_empty? board, destination
-    elsif( (orientation[0] == -1 && orientation[1] == -1) && (@color == :white))
+    elsif( ( (destination[0] - origin[0]) == -1 && orientation[1] == 0) && (@color == :white))
       is_empty? board, destination
     end
   end
@@ -191,9 +197,11 @@ class Board
       origin = @positions[movement[0].to_sym]
       destination = @positions[movement[1].to_sym]
       piece = @board[origin[0]][origin[1]]
-      #binding.pry
-      check_move(piece.to_sym, origin, destination)
-      #binding.pry
+      if piece == nil
+        puts "ILLEGAL"
+      else
+        check_move(piece.to_sym, origin, destination)
+      end
     end
   end
 
@@ -206,7 +214,7 @@ pieces = {
   bB: Bishop, wB: Bishop,
   bK: King, wK: King,
   bN: Knigth, wN: Knigth,
-  bP: Pawn, wP: Pawn
+  bP: Pawn, wP: Pawn,
 }
 
 positions = { a8: [0,0], b8: [0,1], c8: [0,2], d8: [0,3], e8: [0,4], f8: [0,5], g8: [0,6], h8: [0,7],
@@ -220,7 +228,7 @@ positions = { a8: [0,0], b8: [0,1], c8: [0,2], d8: [0,3], e8: [0,4], f8: [0,5], 
 }
 
 
-board = Board.new(pieces, positions, "board_test.txt", "movements.txt")
+board = Board.new(pieces, positions, "complex_board.txt", "complex_move.txt")
 board.load_board
 board.show_board
 #board.check_move(:bP,[1,0],[3,0])
